@@ -115,7 +115,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Publish to NuGet
     needs: [validate-build, package]
-    environment: production
 
     steps:
       - name: Download packages
