@@ -1,0 +1,189 @@
+name: Release & Package
+
+on:
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  BUILD_CONFIGURATION: 'Release'
+
+jobs:
+  # ============================================================
+  # Validate and Build
+  # ============================================================
+  validate-build:
+    runs-on: ubuntu-latest
+    name: Validate & Build Release
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Extract Version from version.json
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' version.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "❌ Failed to extract version from version.json"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "✅ Version extracted from version.json: ${VERSION}"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+
+      - name: Run tests
+        run: |
+          dotnet test \
+            --configuration ${{ env.BUILD_CONFIGURATION }} \
+            --no-build \
+            --logger "console;verbosity=minimal"
+
+  # ============================================================
+  # Package — Clywell.Core.FeatureFlags and Clywell.Core.FeatureFlags.AspNetCore
+  # ============================================================
+  package:
+    runs-on: ubuntu-latest
+    name: Create NuGet Packages
+    needs: validate-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Pack Clywell.Core.FeatureFlags
+        run: |
+          dotnet pack \
+            -c ${{ env.BUILD_CONFIGURATION }} \
+            --no-restore \
+            -p:Version=${{ needs.validate-build.outputs.version }} \
+            -p:PackageVersion=${{ needs.validate-build.outputs.version }} \
+            -o ./artifacts \
+            src/Clywell.Core.FeatureFlags/Clywell.Core.FeatureFlags.csproj
+          echo "✓ Clywell.Core.FeatureFlags packed"
+
+      - name: Pack Clywell.Core.FeatureFlags.AspNetCore
+        run: |
+          dotnet pack \
+            -c ${{ env.BUILD_CONFIGURATION }} \
+            --no-restore \
+            -p:Version=${{ needs.validate-build.outputs.version }} \
+            -p:PackageVersion=${{ needs.validate-build.outputs.version }} \
+            -o ./artifacts \
+            src/Clywell.Core.FeatureFlags.AspNetCore/Clywell.Core.FeatureFlags.AspNetCore.csproj
+          echo "✓ Clywell.Core.FeatureFlags.AspNetCore packed"
+
+      - name: List packages
+        run: |
+          echo "Packages created:"
+          find artifacts -name "*.nupkg" | sort
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+          retention-days: 30
+
+  # ============================================================
+  # Publish to NuGet
+  # ============================================================
+  publish-nuget:
+    runs-on: ubuntu-latest
+    name: Publish to NuGet
+    needs: [validate-build, package]
+    environment: production
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v8
+        with:
+          name: nuget-packages
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish to NuGet.org
+        run: |
+          dotnet nuget push \
+            *.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+
+  # ============================================================
+  # Create GitHub Release
+  # ============================================================
+  github-release:
+    runs-on: ubuntu-latest
+    name: Create GitHub Release
+    needs: [validate-build, package]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download packages
+        uses: actions/download-artifact@v8
+        with:
+          name: nuget-packages
+          path: ./release-assets
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.validate-build.outputs.version }}
+          name: Release ${{ needs.validate-build.outputs.version }}
+          files: ./release-assets/**
+          draft: false
+          prerelease: ${{ contains(needs.validate-build.outputs.version, '-') }}
+          body: |
+            ## Clywell.Core.FeatureFlags v${{ needs.validate-build.outputs.version }}
+
+            ### Release Artifacts
+            - `Clywell.Core.FeatureFlags.${{ needs.validate-build.outputs.version }}.nupkg` — Core evaluation engine (zero ASP.NET Core dependency)
+            - `Clywell.Core.FeatureFlags.AspNetCore.${{ needs.validate-build.outputs.version }}.nupkg` — ASP.NET Core enforcement primitives (MVC attribute, middleware, Minimal API filter)
+
+            ### What's Changed
+            Please review the commit history for details on changes in this release.
+
+            ### Installation
+
+            Core package (required):
+            ```
+            dotnet add package Clywell.Core.FeatureFlags --version ${{ needs.validate-build.outputs.version }}
+            ```
+
+            ASP.NET Core enforcement (optional):
+            ```
+            dotnet add package Clywell.Core.FeatureFlags.AspNetCore --version ${{ needs.validate-build.outputs.version }}
+            ```

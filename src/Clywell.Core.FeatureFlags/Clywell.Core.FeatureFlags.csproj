@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <PackageId>Clywell.Core.FeatureFlags</PackageId>
+        <Description>Feature flag evaluation engine for .NET — rule-based rollout, tenant and user
+            targeting, percentage rollouts, and pluggable providers. Zero infrastructure dependency
+            for Application layer usage.</Description>
+        <PackageTags>clywell;featureflags;feature-flags;rollout;targeting;clean-architecture</PackageTags>
+        <PackageProjectUrl>https://github.com/clywell/clywell-featureflags</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/clywell/clywell-featureflags</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Clywell.Core.FeatureFlags.Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Nerdbank.GitVersioning">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.SourceLink.GitHub">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+</Project>
