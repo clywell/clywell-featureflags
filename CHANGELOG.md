@@ -58,3 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `FeatureFlagEndpointRouteBuilderExtensions.RequireFeature<TBuilder>(flagKey)` — extension on `IEndpointConventionBuilder`; adds `FeatureFlagEndpointFilter` to any Minimal API endpoint or route group
 - `FeatureGateOptions` — `DisabledStatusCode` (default `404`) and `DisabledRedirectPath?` (default `null`)
 - `ServiceCollectionExtensions.AddFeatureFlagsAspNetCore(Action<FeatureGateOptions>?)` — registers ASP.NET Core gate services and automatically calls `AddFeatureFlags`; consumers only need one call
+
+[Unreleased]: https://github.com/clywell/clywell-featureflags/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/clywell/clywell-featureflags/releases/tag/v1.0.0
