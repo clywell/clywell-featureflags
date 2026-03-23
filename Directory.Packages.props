@@ -5,8 +5,8 @@
     <ItemGroup>
         <!-- DI Abstractions -->
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions"
-            Version="10.0.3" />
-        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+            Version="10.0.5" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
 
         <!-- Test Framework -->
         <PackageVersion Include="xunit" Version="2.9.3" />
@@ -23,6 +23,6 @@
         <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
 
         <!-- Source Link -->
-        <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.103" />
+        <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.201" />
     </ItemGroup>
 </Project>
