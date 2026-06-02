@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-02
+
+### Changed
+
+#### Dependency Updates
+
+- Bumped `Microsoft.Extensions.DependencyInjection.Abstractions` from `10.0.3` to `10.0.8`
+- Bumped `Microsoft.Extensions.DependencyInjection` from `10.0.3` to `10.0.8`
+- Bumped `Microsoft.NET.Test.Sdk` from `18.3.0` to `18.6.0` (tests)
+- Bumped `coverlet.collector` from `8.0.0` to `10.0.1` (tests)
+- Bumped `Microsoft.SourceLink.GitHub` from `10.0.103` to `10.0.300`
+
 ## [1.0.0] - 2026-03-05
 
 ### Added
@@ -14,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### `Clywell.Core.FeatureFlags`
 
 **Core engine**
+
 - `IFeatureFlagService` — primary evaluation interface with three `IsEnabledAsync` overloads: empty context, pre-built `EvaluationContext`, and builder delegate
 - `IFeatureFlagProvider` — single interface consumers must implement to connect any data source; exposes `GetAllAsync` and `GetAsync(key)`
 - `IFeatureFlagEvaluator` — optional override point for custom evaluation logic; the default implementation ships in-box
@@ -26,9 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ServiceCollectionExtensions.AddFeatureFlags(Action<FeatureFlagOptions>?)` — registers `IFeatureFlagEvaluator` (singleton), `IFeatureFlagService` (scoped), and `FeatureFlagOptions` (singleton) using `TryAdd*`; `IFeatureFlagProvider` is intentionally not auto-registered — consumers must register their own
 
 **Fluent flag builder**
+
 - `FeatureFlagBuilder` — fluent provider-side builder: `For(key)`, `WithDescription()`, `EnabledByDefault()`, `DisabledByDefault()`, `EnableWhen(condition, priority?)`, `DisableWhen(condition, priority?)`, `Build()`; rules added first receive the highest auto-assigned priority
 
 **Built-in conditions**
+
 - `AlwaysCondition` — always returns `true`; `AlwaysCondition.Instance` singleton for catch-all rules
 - `TenantCondition(params string[])` — matches when `context.TenantId` is in the supplied set (case-insensitive, backed by `FrozenSet`)
 - `UserCondition(params string[])` — matches when `context.UserId` is in the supplied set (case-insensitive, backed by `FrozenSet`)
@@ -39,10 +54,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `NotCondition(inner)` — logical NOT; inverts the result of the inner condition
 
 **Condition composition**
+
 - `Condition` — static factory: `AllOf(params)`, `AnyOf(params)`, `Not(inner)`
 - Extension methods on `IEvaluationCondition`: `.And(right)`, `.Or(right)`, `.Negate()`
 
 **Service extensions**
+
 - `FeatureFlagServiceExtensions` — convenience extensions on `IFeatureFlagService`:
   - `IsEnabledAsync(key, tenantId, ct)` — shortcut for tenant-only context
   - `IsEnabledAsync(key, tenantId, userId, ct)` — shortcut for tenant + user context
@@ -59,5 +76,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `FeatureGateOptions` — `DisabledStatusCode` (default `404`) and `DisabledRedirectPath?` (default `null`)
 - `ServiceCollectionExtensions.AddFeatureFlagsAspNetCore(Action<FeatureGateOptions>?)` — registers ASP.NET Core gate services and automatically calls `AddFeatureFlags`; consumers only need one call
 
-[Unreleased]: https://github.com/clywell/clywell-featureflags/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/clywell/clywell-featureflags/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/clywell/clywell-featureflags/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/clywell/clywell-featureflags/releases/tag/v1.0.0
